@@ -1,0 +1,50 @@
+{
+    "name": "shopit",
+    "version": "1.0.0",
+    "description": "full ecommerce site using mern",
+    "main": "server.js",
+    "scripts": {
+        "start": "node backend/server.js",
+        "dev": "SET NODE_ENV=DEVELOPMENT& nodemon backend/server",
+        "prod": "SET NODE_ENV=PRODUCTION& nodemon backend/server",
+        "seeder": "node backend/utils/seeder.js",
+        "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false && npm install --prefix frontend && npm run build --prefix frontend"
+    },
+    "author": "Lorik Rraci",
+    "license": "ISC",
+    "dependencies": {
+        "bcryptjs": "^2.4.3",
+        "body-parser": "^1.20.2",
+        "browserify-zlib": "^0.2.0",
+        "cloudinary": "^1.41.3",
+        "cookie-parser": "^1.4.6",
+        "cors": "^2.8.5",
+        "crypto-browserify": "^3.12.1",
+        "customize-cra": "^1.0.0",
+        "dotenv": "^8.6.0",
+        "express": "^4.19.2",
+        "express-fileupload": "^1.2.0",
+        "https-browserify": "^1.0.0",
+        "install": "^0.13.0",
+        "jsonwebtoken": "^8.5.1",
+        "mdbreact": "^5.2.0",
+        "mongoose": "^8.6.1",
+        "multer": "^2.0.0",
+        "nodemailer": "^6.9.16",
+        "os-browserify": "^0.3.0",
+        "react": "^18.3.1",
+        "react-app-rewired": "^2.2.1",
+        "react-dom": "^18.3.1",
+        "react-error-boundary": "^6.0.0",
+        "react-paginate": "^8.3.0",
+        "stream-browserify": "^3.0.0",
+        "stream-http": "^3.2.0",
+        "stripe": "^8.128.0",
+        "url": "^0.11.4",
+        "util": "^0.12.5",
+        "validator": "^13.12.0"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.22"
+    }
+}

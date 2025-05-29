@@ -1,0 +1,88 @@
+[
+    {
+        "name": "SanDisk Ultra 128GB SDXC UHS-I Memory Card",
+        "price": 45.99,
+        "description": "Ultra fast cards",
+        "ratings": 4.5,
+        "images": [
+            {
+                "public_id": "sample_public_id",
+                "url": "http://example.com/image.jpg"
+            }
+        ],
+        "category": "Electronics",
+        "seller": "Ebay",
+        "stock": 50,
+        "numOfReviews": 32,
+        "reviews": []
+    },
+    {
+        "name": "MacBook",
+        "price": 4500,
+        "description": "Newest laptop",
+        "ratings": 5,
+        "images": [
+            {
+                "public_id": "macbook_id",
+                "url": "http://example.com/image.jpg"
+            }
+        ],
+        "category": "Laptop",
+        "seller": "Apple",
+        "stock": 50,
+        "numOfReviews": 50,
+        "reviews": []
+    },
+    {
+        "name": "Ps5",
+        "price": 600,
+        "description": "Console games",
+        "ratings": 2,
+        "images": [
+            {
+                "public_id": "ps5_id",
+                "url": "http://example.com/image.jpg"
+            }
+        ],
+        "category": "Electronics",
+        "seller": "Ebay",
+        "stock": 50,
+        "numOfReviews": 33,
+        "reviews": []
+    },
+    {
+        "name": "AirPods",
+        "price": 250,
+        "description": "Best headphones",
+        "ratings": 3.5,
+        "images": [
+            {
+                "public_id": "airpods_id",
+                "url": "http://example.com/image.jpg"
+            }
+        ],
+        "category": "Headphones",
+        "seller": "Apple",
+        "stock": 50,
+        "numOfReviews": 32,
+        "reviews": []
+    },
+    {
+        "name": "AirPodsPro",
+        "price": 550,
+        "description": "Best headphones",
+        "ratings": 5.0,
+        "images": [
+            {
+                "public_id": "airpodsPro_id",
+                "url": "http://example.com/image.jpg"
+            }
+        ],
+        "category": "Headphones",
+        "seller": "Apple",
+        "stock": 40,
+        "numOfReviews": 32,
+        "reviews": []
+    }
+    
+]
