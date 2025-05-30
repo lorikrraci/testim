@@ -13,33 +13,26 @@ from selenium.webdriver.common.keys import Keys
 
 class ProductCartTest(unittest.TestCase):
     def setUp(self):
-        # Setup Chrome options
         chrome_options = Options()
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         
-        # Setup WebDriver with ChromeDriverManager
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         self.driver.maximize_window()
         
-        # Create screenshots directory if it doesn't exist
         if not os.path.exists("screenshots"):
             os.makedirs("screenshots")
             
-        # Base URL
         self.base_url = "http://localhost:3000"
         self.driver.get(self.base_url)
         
-        # Setup wait
         self.wait = WebDriverWait(self.driver, 10)
         
-        # Take screenshot of homepage
         self.driver.save_screenshot("screenshots/homepage.png")
         print("[SETUP] Browser initialized and navigated to homepage")
         
-        # Store product info for use across tests
         self.product_info = {
-            "search_term": "MacBook",  # Use a product name that exists in your database
+            "search_term": "MacBook",
             "product_url": None,
             "product_name": None,
             "search_result_url": None,
@@ -47,7 +40,6 @@ class ProductCartTest(unittest.TestCase):
         }
 
     def find_element_safely(self, by, value, timeout=10, screenshot_prefix=None):
-        """Helper method to find elements safely with explicit wait and screenshots"""
         try:
             element = WebDriverWait(self.driver, timeout).until(
                 EC.presence_of_element_located((by, value))
@@ -57,9 +49,7 @@ class ProductCartTest(unittest.TestCase):
             if screenshot_prefix:
                 self.driver.save_screenshot(f"screenshots/{screenshot_prefix}_not_found.png")
             
-            # Try alternative selectors based on the original selector
             if by == By.ID and value == "search_field":
-                # Try alternative search field selectors
                 try:
                     alternatives = [
                         (By.CSS_SELECTOR, "input[type='search']"),
@@ -80,7 +70,6 @@ class ProductCartTest(unittest.TestCase):
                     pass
             
             elif by == By.ID and value == "search_btn":
-                # Try alternative search button selectors
                 try:
                     alternatives = [
                         (By.CSS_SELECTOR, "button[type='submit']"),
@@ -101,7 +90,6 @@ class ProductCartTest(unittest.TestCase):
                     pass
             
             elif by == By.ID and value == "cart_btn":
-                # Try alternative add to cart button selectors
                 try:
                     alternatives = [
                         (By.CSS_SELECTOR, ".add-to-cart"),
@@ -122,7 +110,6 @@ class ProductCartTest(unittest.TestCase):
                     pass
             
             elif by == By.ID and value == "product_price":
-                # Try alternative price selectors
                 try:
                     alternatives = [
                         (By.CSS_SELECTOR, ".price"),
@@ -142,21 +129,17 @@ class ProductCartTest(unittest.TestCase):
                 except:
                     pass
             
-            # If we get here, we couldn't find any alternatives
             raise Exception(f"Could not find element {by}={value}")
 
     def test_1_product_search(self):
-        """Test product search functionality"""
         try:
             driver = self.driver
             
             print("[SEARCH] Testing product search")
             driver.save_screenshot("screenshots/before_search.png")
             
-            # Try to find search field with multiple approaches
             search_box = None
             try:
-                # First try the ID approach
                 search_box = self.find_element_safely(
                     By.ID, "search_field", 
                     screenshot_prefix="search_field"
@@ -164,9 +147,7 @@ class ProductCartTest(unittest.TestCase):
             except Exception as e:
                 print(f"[SEARCH] Could not find search field by ID: {str(e)}")
                 
-                # Try alternative approaches
                 try:
-                    # Look for any input that might be a search field
                     inputs = driver.find_elements(By.TAG_NAME, "input")
                     for input_elem in inputs:
                         attr_type = input_elem.get_attribute("type")
@@ -178,15 +159,13 @@ class ProductCartTest(unittest.TestCase):
                 except:
                     pass
                 
-                # If still not found, try common search form patterns
                 if not search_box:
                     try:
-                        # Look for forms that might contain search
                         forms = driver.find_elements(By.TAG_NAME, "form")
                         for form in forms:
                             inputs = form.find_elements(By.TAG_NAME, "input")
                             if inputs:
-                                search_box = inputs[0]  # Use the first input in a form
+                                search_box = inputs[0]
                                 print("[SEARCH] Using first input in a form as search field")
                                 break
                     except:
@@ -195,14 +174,11 @@ class ProductCartTest(unittest.TestCase):
             if not search_box:
                 self.fail("Could not find search field with any method")
                 
-            # Clear and enter search term
             search_box.clear()
             search_box.send_keys(self.product_info["search_term"])
             
-            # Try to find search button with multiple approaches
             search_btn = None
             try:
-                # First try the ID approach
                 search_btn = self.find_element_safely(
                     By.ID, "search_btn", 
                     screenshot_prefix="search_button"
@@ -210,11 +186,8 @@ class ProductCartTest(unittest.TestCase):
             except Exception as e:
                 print(f"[SEARCH] Could not find search button by ID: {str(e)}")
                 
-                # Try alternative approaches
                 try:
-                    # Look for buttons near the search box
                     if search_box:
-                        # Get the parent element of the search box
                         parent = search_box.find_element(By.XPATH, "./..")
                         buttons = parent.find_elements(By.TAG_NAME, "button")
                         if buttons:
@@ -223,10 +196,8 @@ class ProductCartTest(unittest.TestCase):
                 except:
                     pass
                 
-                # If still not found, try common button patterns
                 if not search_btn:
                     try:
-                        # Look for any submit button
                         buttons = driver.find_elements(By.CSS_SELECTOR, "button[type='submit']")
                         if buttons:
                             search_btn = buttons[0]
@@ -234,18 +205,15 @@ class ProductCartTest(unittest.TestCase):
                     except:
                         pass
                 
-                # Last resort: press Enter key on search field
                 if not search_btn:
                     print("[SEARCH] No search button found, pressing Enter key")
                     search_box.send_keys(Keys.RETURN)
                     time.sleep(2)
                     driver.save_screenshot("screenshots/after_search_enter.png")
             
-            # Click search button if found
             if search_btn:
                 search_btn.click()
             
-            # Wait for results to load - try multiple selectors
             try:
                 self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".products")))
             except:
@@ -255,37 +223,31 @@ class ProductCartTest(unittest.TestCase):
                     try:
                         self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".product-card")))
                     except:
-                        pass  # We'll check for products directly
+                        pass
             
             driver.save_screenshot("screenshots/search_results.png")
             
-            # Verify results contain the search term or products are displayed
             search_term_found = self.product_info["search_term"].lower() in driver.page_source.lower()
             
-            # Look for products with multiple selectors
             products = driver.find_elements(By.CSS_SELECTOR, ".product-card")
             if len(products) == 0:
                 products = driver.find_elements(By.CSS_SELECTOR, ".product")
             if len(products) == 0:
                 products = driver.find_elements(By.CSS_SELECTOR, "[data-test='product']")
             
-            # If we found products or the search term, consider it a success
             if len(products) > 0:
                 print(f"[SEARCH] Found {len(products)} products")
                 
-                # Store the first product URL for future tests
                 try:
                     first_product = products[0].find_element(By.TAG_NAME, "a")
                     self.product_info["search_result_url"] = first_product.get_attribute("href")
                     print(f"[SEARCH] Found product URL: {self.product_info['search_result_url']}")
                 except:
-                    # If no direct link, try clicking the product itself
                     try:
                         products[0].click()
                         time.sleep(2)
                         self.product_info["search_result_url"] = driver.current_url
                         print(f"[SEARCH] Clicked product and got URL: {self.product_info['search_result_url']}")
-                        # Go back to search results
                         driver.back()
                         time.sleep(2)
                     except:
@@ -302,19 +264,15 @@ class ProductCartTest(unittest.TestCase):
             self.fail(f"Product search test failed: {str(e)}")
 
     def test_2_product_details(self):
-        """Test product details page by directly accessing a product"""
         try:
             driver = self.driver
             
-            # Instead of searching, go directly to the homepage and click on a product
             print("[DETAILS] Testing product details by browsing from homepage")
             driver.get(self.base_url)
             
-            # Wait for page to load
             time.sleep(3)
             driver.save_screenshot("screenshots/homepage_for_details.png")
             
-            # Try to find products with multiple selectors
             products = driver.find_elements(By.CSS_SELECTOR, ".product-card")
             if len(products) == 0:
                 products = driver.find_elements(By.CSS_SELECTOR, ".product")
@@ -322,7 +280,6 @@ class ProductCartTest(unittest.TestCase):
                 products = driver.find_elements(By.CSS_SELECTOR, "[data-test='product']")
             
             if len(products) == 0:
-                # If no products found on homepage, try navigating to products page
                 try:
                     print("[DETAILS] No products on homepage, trying products page")
                     driver.get(f"{self.base_url}/products")
@@ -337,7 +294,6 @@ class ProductCartTest(unittest.TestCase):
                     pass
             
             if len(products) == 0:
-                # If still no products, try using a search result
                 if self.product_info["search_result_url"]:
                     print("[DETAILS] Using search result URL")
                     driver.get(self.product_info["search_result_url"])
@@ -345,27 +301,19 @@ class ProductCartTest(unittest.TestCase):
                     self.fail("No products found on homepage or products page")
                     return
             else:
-                # Click on the first product
                 try:
-                    # Try to find a link within the product
                     product_link = products[0].find_element(By.TAG_NAME, "a")
                     product_link.click()
                 except:
-                    # If no link, try clicking the product directly
                     products[0].click()
             
-            # Wait for product page to load
             time.sleep(3)
             driver.save_screenshot("screenshots/product_details_page.png")
             
-            # Get current URL for future use
             current_url = driver.current_url
             self.product_info["product_url"] = current_url
             print(f"[DETAILS] Product page URL: {current_url}")
             
-            # Verify product elements - try multiple approaches for each element
-            
-            # Product name
             product_name = None
             try:
                 product_name_elem = driver.find_element(By.CSS_SELECTOR, "h3")
@@ -387,7 +335,6 @@ class ProductCartTest(unittest.TestCase):
             else:
                 print("[DETAILS] Could not find product name")
             
-            # Product price
             price_found = False
             try:
                 price_elem = self.find_element_safely(
@@ -411,7 +358,6 @@ class ProductCartTest(unittest.TestCase):
             else:
                 print("[DETAILS] Warning: Product price not found")
             
-            # Add to cart button
             cart_btn_found = False
             try:
                 cart_btn = self.find_element_safely(
@@ -435,7 +381,6 @@ class ProductCartTest(unittest.TestCase):
             else:
                 print("[DETAILS] Warning: Add to cart button not found")
             
-            # Product images
             images_found = False
             try:
                 product_images = driver.find_elements(By.CSS_SELECTOR, ".carousel-item img")
@@ -456,7 +401,6 @@ class ProductCartTest(unittest.TestCase):
             else:
                 print("[DETAILS] Warning: Product images not found")
             
-            # We consider the test successful if we found at least the product name and either price or add to cart button
             if product_name and (price_found or cart_btn_found):
                 print(f"[DETAILS] Product details test completed for: {product_name}")
             else:
@@ -467,39 +411,31 @@ class ProductCartTest(unittest.TestCase):
             self.fail(f"Product details test failed: {str(e)}")
 
     def test_3_add_to_cart(self):
-        """Test adding product to cart using the product URL from previous test"""
         try:
             driver = self.driver
             
-            # Use the product URL from the previous test
             if self.product_info["product_url"]:
                 print(f"[CART] Using product URL from previous test: {self.product_info['product_url']}")
                 driver.get(self.product_info["product_url"])
             else:
-                # Fallback to using search result URL
                 if self.product_info["search_result_url"]:
                     print(f"[CART] Using search result URL: {self.product_info['search_result_url']}")
                     driver.get(self.product_info["search_result_url"])
                 else:
-                    # Last resort: go to homepage and click first product
                     print("[CART] No saved URLs, browsing from homepage")
                     driver.get(self.base_url)
                     
-                    # Wait for products to load
                     self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".product-card")))
                     
-                    # Click on the first product
                     first_product = self.find_element_safely(
                         By.CSS_SELECTOR, ".product-card a", 
                         screenshot_prefix="cart_first_product"
                     )
                     first_product.click()
             
-            # Wait for product page to load
             self.wait.until(EC.presence_of_element_located((By.ID, "cart_btn")))
             driver.save_screenshot("screenshots/before_add_to_cart.png")
             
-            # Get product name for verification
             try:
                 product_name = driver.find_element(By.CSS_SELECTOR, "h3").text
                 print(f"[CART] Testing with product: {product_name}")
@@ -507,13 +443,12 @@ class ProductCartTest(unittest.TestCase):
             except:
                 print("[CART] Could not get product name")
             
-            # Try to increase quantity if plus button exists
             try:
                 print("[CART] Trying to increase quantity")
                 plus_buttons = driver.find_elements(By.CSS_SELECTOR, ".plus")
                 if len(plus_buttons) > 0:
                     plus_buttons[0].click()
-                    time.sleep(1)  # Small wait for quantity to update
+                    time.sleep(1)
                     driver.save_screenshot("screenshots/after_quantity_increase.png")
                     print("[CART] Quantity increased")
                 else:
@@ -521,19 +456,16 @@ class ProductCartTest(unittest.TestCase):
             except Exception as e:
                 print(f"[CART] Could not increase quantity: {str(e)}")
             
-            # Add to cart
             cart_btn = self.find_element_safely(
                 By.ID, "cart_btn", 
                 screenshot_prefix="add_to_cart_button"
             )
             cart_btn.click()
-            time.sleep(2)  # Wait for add to cart to complete
+            time.sleep(2)
             driver.save_screenshot("screenshots/after_add_to_cart.png")
             
-            # Verify cart update through multiple methods
             success = False
             
-            # Method 1: Check for success message
             try:
                 success_alert = WebDriverWait(driver, 5).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, ".alert-success"))
@@ -543,10 +475,8 @@ class ProductCartTest(unittest.TestCase):
             except:
                 print("[CART] No success message found, trying other verification methods")
             
-            # Method 2: Check cart icon/count
             if not success:
                 try:
-                    # Check for cart count indicator
                     cart_count = driver.find_elements(By.CSS_SELECTOR, ".cart-count")
                     if len(cart_count) > 0 and cart_count[0].text != "0":
                         print(f"[CART] Cart count updated: {cart_count[0].text}")
@@ -554,15 +484,12 @@ class ProductCartTest(unittest.TestCase):
                 except:
                     print("[CART] Could not verify cart count")
             
-            # Method 3: Navigate to cart page
             if not success:
                 try:
-                    # Navigate to cart to verify item was added
                     driver.get(f"{self.base_url}/cart")
                     time.sleep(3)
                     driver.save_screenshot("screenshots/cart_verification.png")
                     
-                    # Check if cart has items
                     if "Your Cart is Empty" not in driver.page_source:
                         print("[CART] Cart is not empty, item was added successfully")
                         success = True
@@ -579,65 +506,51 @@ class ProductCartTest(unittest.TestCase):
             self.fail(f"Add to cart test failed: {str(e)}")
 
     def test_4_cart_operations(self):
-        """Test cart page operations using the cart from previous test"""
         try:
             driver = self.driver
             
-            # Navigate directly to cart page
             print("[CART-OPS] Navigating to cart page")
             driver.get(f"{self.base_url}/cart")
-            time.sleep(3)  # Give more time for cart page to load
+            time.sleep(3)
             driver.save_screenshot("screenshots/cart_page.png")
             
-            # Check if cart is empty
             if "Your Cart is Empty" in driver.page_source:
                 print("[CART-OPS] Cart is empty, adding an item first")
                 
-                # Go to a product page and add to cart
                 if self.product_info["product_url"]:
-                    # Use the product URL from previous tests
                     driver.get(self.product_info["product_url"])
                 else:
-                    # Go to homepage and click on first product
                     driver.get(self.base_url)
                     
-                    # Wait for products to load
                     self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".product-card")))
                     
-                    # Click on the first product
                     first_product = self.find_element_safely(
                         By.CSS_SELECTOR, ".product-card a", 
                         screenshot_prefix="cart_ops_first_product"
                     )
                     first_product.click()
                 
-                # Wait for product page to load
                 self.wait.until(EC.presence_of_element_located((By.ID, "cart_btn")))
                 
-                # Add to cart
                 cart_btn = self.find_element_safely(
                     By.ID, "cart_btn", 
                     screenshot_prefix="cart_ops_add_button"
                 )
                 cart_btn.click()
-                time.sleep(3)  # Wait for add to cart to complete
+                time.sleep(3)
                 
-                # Navigate back to cart page
                 driver.get(f"{self.base_url}/cart")
                 time.sleep(3)
                 driver.save_screenshot("screenshots/cart_page_after_adding.png")
                 
-                # Check if cart is still empty
                 if "Your Cart is Empty" in driver.page_source:
                     self.fail("Cart is still empty after adding an item, cannot test cart operations")
                     return
             
             print("[CART-OPS] Cart has items, continuing with test")
             
-            # Test cart item presence
             cart_items = driver.find_elements(By.CSS_SELECTOR, ".cart-item")
             if len(cart_items) == 0:
-                # Try alternative selectors
                 cart_items = driver.find_elements(By.CSS_SELECTOR, ".cart_item")
                 if len(cart_items) == 0:
                     cart_items = driver.find_elements(By.CSS_SELECTOR, "[data-test='cart-item']")
@@ -645,10 +558,8 @@ class ProductCartTest(unittest.TestCase):
             self.assertTrue(len(cart_items) > 0, "No items found in cart")
             print(f"[CART-OPS] Found {len(cart_items)} items in cart")
             
-            # Test quantity adjustment if available
             try:
                 print("[CART-OPS] Testing quantity adjustment")
-                # Try different selectors for plus buttons
                 plus_buttons = driver.find_elements(By.CSS_SELECTOR, ".plus")
                 if len(plus_buttons) == 0:
                     plus_buttons = driver.find_elements(By.CSS_SELECTOR, ".increment")
@@ -661,7 +572,6 @@ class ProductCartTest(unittest.TestCase):
                     driver.save_screenshot("screenshots/after_cart_quantity_increase.png")
                     print("[CART-OPS] Quantity increased")
                     
-                    # Try to decrease quantity
                     minus_buttons = driver.find_elements(By.CSS_SELECTOR, ".minus")
                     if len(minus_buttons) == 0:
                         minus_buttons = driver.find_elements(By.CSS_SELECTOR, ".decrement")
@@ -678,9 +588,7 @@ class ProductCartTest(unittest.TestCase):
             except Exception as e:
                 print(f"[CART-OPS] Could not test quantity adjustment: {str(e)}")
             
-            # Test checkout button if cart is not empty
             try:
-                # Try multiple selectors for checkout button
                 checkout_selectors = [
                     ".checkout-btn", 
                     "#checkout-button", 
@@ -714,18 +622,14 @@ class ProductCartTest(unittest.TestCase):
             self.fail(f"Cart operations test failed: {str(e)}")
 
     def test_5_browse_categories(self):
-        """Test browsing products by category"""
         try:
             driver = self.driver
             
-            # Go to homepage
             print("[CATEGORIES] Testing category browsing")
             driver.get(self.base_url)
             
-            # Look for category links
             category_links = driver.find_elements(By.CSS_SELECTOR, ".category-link")
             if len(category_links) == 0:
-                # Try alternative selectors
                 category_links = driver.find_elements(By.CSS_SELECTOR, "[data-test='category']")
                 if len(category_links) == 0:
                     category_links = driver.find_elements(By.CSS_SELECTOR, ".sidebar a")
@@ -734,27 +638,21 @@ class ProductCartTest(unittest.TestCase):
                 print("[CATEGORIES] No category links found, skipping test")
                 return
             
-            # Click on the first category
             print(f"[CATEGORIES] Found {len(category_links)} categories, clicking first one")
             category_links[0].click()
             
-            # Wait for products to load
             self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, ".products")))
             driver.save_screenshot("screenshots/category_products.png")
             
-            # Check if any products are displayed
             products = driver.find_elements(By.CSS_SELECTOR, ".product-card")
             print(f"[CATEGORIES] Found {len(products)} products in category")
             
-            # Click on a product if available
             if len(products) > 0:
                 products[0].find_element(By.TAG_NAME, "a").click()
                 
-                # Wait for product page to load
                 self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "h3")))
                 driver.save_screenshot("screenshots/category_product_details.png")
                 
-                # Store this URL as another product option
                 self.product_info["category_product_url"] = driver.current_url
                 print(f"[CATEGORIES] Stored category product URL: {self.product_info['category_product_url']}")
             
@@ -763,7 +661,6 @@ class ProductCartTest(unittest.TestCase):
         except Exception as e:
             self.driver.save_screenshot("screenshots/category_browse_error.png")
             print(f"[CATEGORIES] Category browsing test encountered an error: {str(e)}")
-            # Don't fail the test suite for this optional test
             pass
 
     def tearDown(self):

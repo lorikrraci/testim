@@ -13,32 +13,25 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 class AdminPanelTest(unittest.TestCase):
     def setUp(self):
-        # Setup Chrome options
         chrome_options = Options()
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--window-size=1920,1080")
         
-        # Setup WebDriver with ChromeDriverManager
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         self.driver.maximize_window()
         
-        # Create screenshots directory if it doesn't exist
         if not os.path.exists("screenshots"):
             os.makedirs("screenshots")
         
-        # Base URL
         self.base_url = "http://localhost:3000"
         
-        # Admin credentials
         self.admin_email = "admin@example.com"
         self.admin_password = "admin123"
         
-        # Setup wait
         self.wait = WebDriverWait(self.driver, 10)
         
-        # Login as admin
         self.admin_login()
         
     def admin_login(self):
@@ -48,28 +41,22 @@ class AdminPanelTest(unittest.TestCase):
             self.driver.get(f"{self.base_url}/login")
             time.sleep(2)
             
-            # Take screenshot
             self.driver.save_screenshot("screenshots/admin_login_page.png")
             
-            # Find and fill email field
             email_field = self.wait.until(EC.presence_of_element_located((By.ID, "email_field")))
             email_field.clear()
             email_field.send_keys(self.admin_email)
             
-            # Find and fill password field
             password_field = self.driver.find_element(By.ID, "password_field")
             password_field.clear()
             password_field.send_keys(self.admin_password)
             
-            # Submit form
             submit_button = self.driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
             submit_button.click()
             
-            # Wait for login to complete
             time.sleep(3)
             self.driver.save_screenshot("screenshots/admin_after_login.png")
             
-            # Navigate to admin dashboard
             print("[SETUP] Navigating to admin dashboard")
             self.driver.get(f"{self.base_url}/admin/dashboard")
             time.sleep(2)
@@ -97,7 +84,6 @@ class AdminPanelTest(unittest.TestCase):
             
             print("[DASHBOARD] Verifying dashboard elements")
             
-            # Verify dashboard container
             dashboard = self.find_element_safely(
                 By.CSS_SELECTOR, 
                 ".dashboard", 
@@ -105,7 +91,6 @@ class AdminPanelTest(unittest.TestCase):
             )
             self.assertTrue(dashboard.is_displayed())
             
-            # Verify sections
             sections = [
                 (".products-section", "products"),
                 (".orders-section", "orders"),
@@ -121,7 +106,6 @@ class AdminPanelTest(unittest.TestCase):
                 self.assertTrue(section.is_displayed())
                 print(f"[DASHBOARD] Verified {name} section")
             
-            # Take final screenshot
             driver.save_screenshot("screenshots/dashboard_test_complete.png")
             print("[DASHBOARD] Dashboard test completed successfully")
             
@@ -134,13 +118,11 @@ class AdminPanelTest(unittest.TestCase):
         try:
             driver = self.driver
             
-            # Navigate to products list
             print("[PRODUCTS] Navigating to products list")
             driver.get(f"{self.base_url}/admin/products")
             time.sleep(2)
             driver.save_screenshot("screenshots/products_list.png")
             
-            # Verify products table
             products_table = self.find_element_safely(
                 By.CSS_SELECTOR, 
                 ".products-table", 
@@ -148,7 +130,6 @@ class AdminPanelTest(unittest.TestCase):
             )
             self.assertTrue(products_table.is_displayed())
             
-            # Click new product button
             print("[PRODUCTS] Testing new product creation")
             new_product_btn = self.find_element_safely(
                 By.CSS_SELECTOR, 
@@ -159,14 +140,11 @@ class AdminPanelTest(unittest.TestCase):
             time.sleep(2)
             driver.save_screenshot("screenshots/new_product_form.png")
             
-            # Generate random product data
             random_num = random.randint(1000, 9999)
             product_name = f"Test Product {random_num}"
             
-            # Fill product form
             print(f"[PRODUCTS] Creating product: {product_name}")
             
-            # Fill name field
             name_field = self.find_element_safely(
                 By.ID, 
                 "name_field", 
@@ -175,7 +153,6 @@ class AdminPanelTest(unittest.TestCase):
             name_field.clear()
             name_field.send_keys(product_name)
             
-            # Fill price field
             price_field = self.find_element_safely(
                 By.ID, 
                 "price_field", 
@@ -184,7 +161,6 @@ class AdminPanelTest(unittest.TestCase):
             price_field.clear()
             price_field.send_keys("99.99")
             
-            # Fill description field
             description_field = self.find_element_safely(
                 By.ID, 
                 "description_field", 
@@ -193,7 +169,6 @@ class AdminPanelTest(unittest.TestCase):
             description_field.clear()
             description_field.send_keys("This is a test product description")
             
-            # Fill category field
             category_field = self.find_element_safely(
                 By.ID, 
                 "category_field", 
@@ -202,7 +177,6 @@ class AdminPanelTest(unittest.TestCase):
             category_field.clear()
             category_field.send_keys("Electronics")
             
-            # Fill stock field
             stock_field = self.find_element_safely(
                 By.ID, 
                 "stock_field", 
@@ -211,7 +185,6 @@ class AdminPanelTest(unittest.TestCase):
             stock_field.clear()
             stock_field.send_keys("50")
             
-            # Fill seller field
             seller_field = self.find_element_safely(
                 By.ID, 
                 "seller_field", 
@@ -220,10 +193,8 @@ class AdminPanelTest(unittest.TestCase):
             seller_field.clear()
             seller_field.send_keys("Test Seller")
             
-            # Take screenshot before submitting
             driver.save_screenshot("screenshots/product_form_filled.png")
             
-            # Submit form
             print("[PRODUCTS] Submitting product form")
             submit_button = self.find_element_safely(
                 By.CSS_SELECTOR, 
@@ -233,14 +204,11 @@ class AdminPanelTest(unittest.TestCase):
             submit_button.click()
             time.sleep(3)
             
-            # Take screenshot after submission
             driver.save_screenshot("screenshots/after_product_creation.png")
             
-            # Verify success message
             self.assertIn("success", driver.page_source.lower())
             print("[PRODUCTS] Product management test completed successfully")
             
-            # Save product info for reference
             with open("test_product_info.txt", "w") as f:
                 f.write(f"Product Name: {product_name}\n")
                 f.write("Price: 99.99\n")
@@ -256,13 +224,11 @@ class AdminPanelTest(unittest.TestCase):
         try:
             driver = self.driver
             
-            # Navigate to orders list
             print("[ORDERS] Navigating to orders list")
             driver.get(f"{self.base_url}/admin/orders")
             time.sleep(2)
             driver.save_screenshot("screenshots/orders_list.png")
             
-            # Verify orders table
             try:
                 orders_table = self.find_element_safely(
                     By.CSS_SELECTOR, 
@@ -272,10 +238,8 @@ class AdminPanelTest(unittest.TestCase):
                 )
                 self.assertTrue(orders_table.is_displayed())
                 
-                # Check if there are any orders
                 order_rows = driver.find_elements(By.CSS_SELECTOR, ".orders-table tr")
-                if len(order_rows) > 1:  # Header row + at least one data row
-                    # Click on first order to view details
+                if len(order_rows) > 1:
                     print("[ORDERS] Viewing order details")
                     view_button = self.find_element_safely(
                         By.CSS_SELECTOR, 
@@ -287,7 +251,6 @@ class AdminPanelTest(unittest.TestCase):
                     time.sleep(2)
                     driver.save_screenshot("screenshots/order_details.png")
                     
-                    # Verify order details page
                     order_details = self.find_element_safely(
                         By.CSS_SELECTOR, 
                         ".order-details", 
@@ -314,13 +277,11 @@ class AdminPanelTest(unittest.TestCase):
         try:
             driver = self.driver
             
-            # Navigate to users list
             print("[USERS] Navigating to users list")
             driver.get(f"{self.base_url}/admin/users")
             time.sleep(2)
             driver.save_screenshot("screenshots/users_list.png")
             
-            # Verify users table
             try:
                 users_table = self.find_element_safely(
                     By.CSS_SELECTOR, 
@@ -330,9 +291,8 @@ class AdminPanelTest(unittest.TestCase):
                 )
                 self.assertTrue(users_table.is_displayed())
                 
-                # Check if there are any users
                 user_rows = driver.find_elements(By.CSS_SELECTOR, ".users-table tr")
-                if len(user_rows) > 1:  # Header row + at least one data row
+                if len(user_rows) > 1:
                     print("[USERS] Users table verified successfully")
                 else:
                     print("[USERS] No users found in the table")

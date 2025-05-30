@@ -16,47 +16,38 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 class UserAccountTest(unittest.TestCase):
     def setUp(self):
-        # Setup Chrome options
         chrome_options = Options()
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--window-size=1920,1080")
         
-        # Setup WebDriver with ChromeDriverManager
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         self.driver.maximize_window()
         
-        # Base URL - change if your app runs on a different port
         self.base_url = "http://localhost:3000"
         self.driver.get(self.base_url)
         
-        # Wait for page to load
         self.wait = WebDriverWait(self.driver, 15)
         print(f"[SETUP] Browser initialized and navigated to {self.base_url}")
         
-        # Take screenshot of homepage
         self.take_screenshot("homepage")
         
-        # Connect to MongoDB and get a test user
         try:
-            # Connect to MongoDB - update connection string as needed
             client = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
-            db = client["shopit"]  # Use your actual database name
-            users_collection = db["users"]  # Use your actual collection name
+            db = client["shopit"]  
+            users_collection = db["users"]  
             
-            # Find a user with role "user" (not admin)
             user_doc = users_collection.find_one({"role": "user"})
             
             if user_doc:
                 self.test_user = {
                     "name": user_doc.get("name", "Test User"),
                     "email": user_doc.get("email", "test@example.com"),
-                    "password": "password123"  # Note: You won't have the actual password in the DB
+                    "password": "password123"  
                 }
                 print(f"[SETUP] Found test user in database: {self.test_user['email']}")
             else:
-                # Generate random test user if none found
                 self.random_num = random.randint(1000, 9999)
                 self.test_user = {
                     "name": f"Test User {self.random_num}",
@@ -66,7 +57,6 @@ class UserAccountTest(unittest.TestCase):
                 print(f"[SETUP] Generated test user: {self.test_user['name']}, {self.test_user['email']}")
         except Exception as e:
             print(f"[SETUP] Error connecting to database: {str(e)}")
-            # Generate random test user as fallback
             self.random_num = random.randint(1000, 9999)
             self.test_user = {
                 "name": f"Test User {self.random_num}",
@@ -76,14 +66,12 @@ class UserAccountTest(unittest.TestCase):
             print(f"[SETUP] Generated test user: {self.test_user['name']}, {self.test_user['email']}")
 
     def take_screenshot(self, name):
-        """Helper method to take screenshots for debugging"""
         if not os.path.exists("screenshots"):
             os.makedirs("screenshots")
         self.driver.save_screenshot(f"screenshots/{name}.png")
         print(f"[INFO] Screenshot saved: screenshots/{name}.png")
 
     def find_element_with_multiple_strategies(self, strategies):
-        """Try multiple strategies to find an element"""
         for strategy in strategies:
             by, value = strategy
             try:
@@ -94,12 +82,10 @@ class UserAccountTest(unittest.TestCase):
                 print(f"[INFO] Could not find element using {by}={value}")
                 continue
         
-        # If we get here, all strategies failed
         self.take_screenshot("element_not_found")
         raise NoSuchElementException(f"Could not find element using any of the strategies: {strategies}")
 
     def test_1_user_registration(self):
-        """Test user registration with a new account"""
         driver = self.driver
         
         try:
@@ -110,7 +96,6 @@ class UserAccountTest(unittest.TestCase):
             
             print(f"[REGISTER] Filling form with name={self.test_user['name']}, email={self.test_user['email']}")
             
-            # Find name field
             name_field = self.find_element_with_multiple_strategies([
                 (By.ID, "name"),
                 (By.NAME, "name"),
@@ -120,7 +105,6 @@ class UserAccountTest(unittest.TestCase):
             name_field.clear()
             name_field.send_keys(self.test_user['name'])
             
-            # Find email field
             email_field = self.find_element_with_multiple_strategies([
                 (By.ID, "email"),
                 (By.NAME, "email"),
@@ -130,7 +114,6 @@ class UserAccountTest(unittest.TestCase):
             email_field.clear()
             email_field.send_keys(self.test_user['email'])
             
-            # Find password field
             password_field = self.find_element_with_multiple_strategies([
                 (By.ID, "password"),
                 (By.NAME, "password"),
@@ -139,7 +122,6 @@ class UserAccountTest(unittest.TestCase):
             password_field.clear()
             password_field.send_keys(self.test_user['password'])
             
-            # Take screenshot before submitting
             self.take_screenshot("register_form_filled")
             
             print("[REGISTER] Submitting registration form")
@@ -150,18 +132,15 @@ class UserAccountTest(unittest.TestCase):
             ])
             submit_button.click()
             
-            # Wait for registration to complete
             time.sleep(5)
             self.take_screenshot("after_registration")
             
-            # Check for success
             page_source = driver.page_source.lower()
             success = any(word in page_source for word in ["registered", "success", "welcome", "account", "profile"])
             
             self.assertTrue(success, "Registration success indicator not found")
             print("[REGISTER] Registration test completed successfully")
             
-            # Save user credentials to a file for reference
             with open("test_user_credentials.txt", "w") as f:
                 f.write(f"Name: {self.test_user['name']}\n")
                 f.write(f"Email: {self.test_user['email']}\n")
@@ -172,7 +151,6 @@ class UserAccountTest(unittest.TestCase):
             self.fail(f"Registration test failed: {str(e)}")
 
     def test_user_login(self):
-        """Test login with the newly registered account"""
         driver = self.driver
         
         try:
@@ -182,7 +160,6 @@ class UserAccountTest(unittest.TestCase):
             self.take_screenshot("login_page")
             
             print(f"[LOGIN] Entering credentials for {self.test_user['email']}")
-            # Find email field
             email_field = self.find_element_with_multiple_strategies([
                 (By.ID, "email"),
                 (By.NAME, "email"),
@@ -192,7 +169,6 @@ class UserAccountTest(unittest.TestCase):
             email_field.clear()
             email_field.send_keys(self.test_user['email'])
             
-            # Find password field
             password_field = self.find_element_with_multiple_strategies([
                 (By.ID, "password"),
                 (By.NAME, "password"),
@@ -201,7 +177,6 @@ class UserAccountTest(unittest.TestCase):
             password_field.clear()
             password_field.send_keys(self.test_user['password'])
             
-            # Take screenshot before submitting
             self.take_screenshot("login_form_filled")
             
             print("[LOGIN] Submitting login form")
@@ -212,11 +187,9 @@ class UserAccountTest(unittest.TestCase):
             ])
             submit_button.click()
             
-            # Wait for login to complete
             time.sleep(5)
             self.take_screenshot("after_login")
             
-            # Check for success
             page_source = driver.page_source.lower()
             success = any(word in page_source for word in ["logout", "profile", "account", "dashboard"])
             
@@ -228,11 +201,9 @@ class UserAccountTest(unittest.TestCase):
             self.fail(f"Login test failed: {str(e)}")
 
     def test_3_update_profile(self):
-        """Test updating profile after login"""
         driver = self.driver
         
         try:
-            # Login first using our test user
             print("[PROFILE] Logging in first")
             driver.get(f"{self.base_url}/login")
             time.sleep(2)
@@ -260,7 +231,6 @@ class UserAccountTest(unittest.TestCase):
             submit_button.click()
             time.sleep(3)
             
-            # Navigate to profile page - try different possible URLs
             print("[PROFILE] Navigating to profile page")
             profile_urls = [
                 f"{self.base_url}/me/update",
@@ -273,7 +243,6 @@ class UserAccountTest(unittest.TestCase):
                 try:
                     driver.get(url)
                     time.sleep(2)
-                    # Check if we're on a profile page by looking for a name field
                     try:
                         self.find_element_with_multiple_strategies([
                             (By.ID, "name"),
@@ -290,7 +259,6 @@ class UserAccountTest(unittest.TestCase):
                     continue
             
             print("[PROFILE] Updating profile information")
-            # Find name field
             name_field = self.find_element_with_multiple_strategies([
                 (By.ID, "name"),
                 (By.NAME, "name"),
@@ -300,7 +268,6 @@ class UserAccountTest(unittest.TestCase):
             updated_name = f"Updated {self.test_user['name']}"
             name_field.send_keys(updated_name)
             
-            # Take screenshot before submitting
             self.take_screenshot("profile_form_filled")
             
             print("[PROFILE] Submitting updated profile")
@@ -311,18 +278,15 @@ class UserAccountTest(unittest.TestCase):
             ])
             submit_button.click()
             
-            # Wait for update to complete
             time.sleep(5)
             self.take_screenshot("after_profile_update")
             
-            # Check for success
             page_source = driver.page_source.lower()
             success = any(word in page_source for word in ["updated", "success", "profile"])
             
             self.assertTrue(success, "Profile update success indicator not found")
             print("[PROFILE] Profile update test completed successfully")
             
-            # Update our test user data
             self.test_user['name'] = updated_name
             
         except Exception as e:
@@ -330,11 +294,9 @@ class UserAccountTest(unittest.TestCase):
             self.fail(f"Profile update test failed: {str(e)}")
 
     def test_4_password_reset(self):
-        """Test password reset functionality"""
         driver = self.driver
         
         try:
-            # Try different possible URLs for password reset
             print("[PASSWORD] Navigating to password reset page")
             reset_urls = [
                 f"{self.base_url}/password/forgot",
@@ -347,7 +309,6 @@ class UserAccountTest(unittest.TestCase):
                 try:
                     driver.get(url)
                     time.sleep(2)
-                    # Check if we're on a password reset page by looking for an email field
                     try:
                         self.find_element_with_multiple_strategies([
                             (By.ID, "email"),
@@ -364,7 +325,6 @@ class UserAccountTest(unittest.TestCase):
                     continue
             
             print(f"[PASSWORD] Entering email for password reset: {self.test_user['email']}")
-            # Find email field
             email_field = self.find_element_with_multiple_strategies([
                 (By.ID, "email"),
                 (By.NAME, "email"),
@@ -374,7 +334,6 @@ class UserAccountTest(unittest.TestCase):
             email_field.clear()
             email_field.send_keys(self.test_user['email'])
             
-            # Take screenshot before submitting
             self.take_screenshot("password_reset_form_filled")
             
             print("[PASSWORD] Submitting password reset request")
@@ -386,11 +345,9 @@ class UserAccountTest(unittest.TestCase):
             ])
             submit_button.click()
             
-            # Wait for request to complete
             time.sleep(5)
             self.take_screenshot("after_password_reset")
             
-            # Check for success
             page_source = driver.page_source.lower()
             success = any(word in page_source for word in ["email", "sent", "reset", "success"])
             
