@@ -92,40 +92,69 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
 });
 //Forgot password => /api/v1/password/forgot
 exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
-  const user = await User.findOne({ email: req.body.email });
-
-  if (!user) {
-    return next(new ErrorHandler("User not found with this email", 404));
-  }
-
-  //Get reset token
-  const resetToken = user.getResetPasswordToken();
-
-  await user.save({ validateBeforeSave: false });
-
-  //Create reset password url
-  const resetUrl = `${req.protocol}://${req.get(
-    "host"
-  )}/api/v1/password/reset/${resetToken}`;
-
-  const message = `Your password reset token is as follow : \n\n${resetUrl}\n\nIf you have not requested this email, then ignore it.`;
-
   try {
-    await sendEmail({
-      email: user.email,
-      subject: "ShopIT Password Recovery",
-      message,
-    });
-    res.status(200).json({
-      success: true,
-      message: `Email sent to : ${user.email}`,
-    });
-  } catch (error) {
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
+    console.log("Forgot password request received:", req.body);
+
+    if (!req.body.email) {
+      return next(new ErrorHandler("Please provide an email address", 400));
+    }
+
+    const user = await User.findOne({ email: req.body.email });
+
+    if (!user) {
+      console.log("User not found with email:", req.body.email);
+      return next(new ErrorHandler("User not found with this email", 404));
+    }
+
+    // Get reset token
+    const resetToken = user.getResetPasswordToken();
 
     await user.save({ validateBeforeSave: false });
 
+    // Create reset password url
+    const resetUrl = `${
+      process.env.FRONTEND_URL || "http://localhost:3000"
+    }/password/reset/${resetToken}`;
+
+    const message = `Your password reset token is as follow:\n\n${resetUrl}\n\nIf you have not requested this email, then ignore it.`;
+
+    try {
+      // In development mode, we can skip actual email sending for testing
+      if (process.env.NODE_ENV === "DEVELOPMENT") {
+        console.log("DEVELOPMENT MODE: Skipping actual email sending");
+        console.log("Reset URL:", resetUrl);
+
+        res.status(200).json({
+          success: true,
+          message: `Email would be sent to: ${user.email}. Reset URL: ${resetUrl}`,
+          resetUrl, // Include the reset URL in the response for testing
+        });
+      } else {
+        // In production, send actual email
+        await sendEmail({
+          email: user.email,
+          subject: "ShopIT Password Recovery",
+          message,
+        });
+
+        console.log("Password reset email sent to:", user.email);
+
+        res.status(200).json({
+          success: true,
+          message: `Email sent to: ${user.email}`,
+        });
+      }
+    } catch (error) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+
+      await user.save({ validateBeforeSave: false });
+
+      console.error("Error sending email:", error);
+      return next(new ErrorHandler(error.message, 500));
+    }
+  } catch (error) {
+    console.error("Forgot password error:", error);
     return next(new ErrorHandler(error.message, 500));
   }
 });

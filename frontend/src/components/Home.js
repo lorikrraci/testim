@@ -1,88 +1,95 @@
 import React, { Fragment, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getProducts } from "../actions/productActions";
-import { useAlert } from "react-alert";
 import { useParams } from "react-router-dom";
+import { useAlert } from "react-alert";
+import Pagination from "react-js-pagination";
+
 import MetaData from "./layout/MetaData";
-import ApiTest from "./ApiTest";
+import Product from "./product/Product";
+import Loader from "./layout/Loader";
+import { getProducts } from "../actions/productActions";
 
 const Home = () => {
   const dispatch = useDispatch();
   const alert = useAlert();
-  const { loading, products, error, productCount, resPerPage } = useSelector(
-    (state) => state.products
-  );
+  const {
+    loading,
+    products,
+    error,
+    productCount,
+    resPerPage,
+    filteredProductsCount,
+  } = useSelector((state) => state.products);
   const { keyword } = useParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [price, setPrice] = useState([1, 5000]);
   const [category, setCategory] = useState("");
   const [rating, setRating] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(4); // Default to 4 items per page
 
   useEffect(() => {
     if (error) {
       alert.error(error);
-      return; // Fix: Don't return anything from useEffect
+      return;
     }
 
-    dispatch(getProducts(keyword, currentPage, price, category, rating));
-  }, [dispatch, alert, error, keyword, currentPage, price, category, rating]);
+    dispatch(
+      getProducts(keyword, currentPage, price, category, rating, itemsPerPage)
+    );
+  }, [
+    dispatch,
+    alert,
+    error,
+    keyword,
+    currentPage,
+    price,
+    category,
+    rating,
+    itemsPerPage,
+  ]);
+
+  function setCurrentPageNo(pageNumber) {
+    setCurrentPage(pageNumber);
+  }
+
+  const handleViewAllToggle = () => {
+    if (itemsPerPage === 4) {
+      setItemsPerPage(100); // Show a large number to get all products
+      setCurrentPage(1); // Reset to first page
+    } else {
+      setItemsPerPage(4); // Reset to default
+      setCurrentPage(1); // Reset to first page
+    }
+  };
+
+  let count = productCount;
+  if (keyword) {
+    count = filteredProductsCount;
+  }
 
   return (
     <Fragment>
       {loading ? (
-        <div className="loader">Loading...</div>
+        <Loader />
       ) : (
         <Fragment>
           <MetaData title={"Buy Best Products Online"} />
 
-          {/* Add the API test component */}
-          <ApiTest />
-
-          <h1 id="products_heading" className="my-5">
-            Latest Products
-          </h1>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h1 id="products_heading">Latest Products</h1>
+            <button
+              className="btn btn-outline-primary"
+              onClick={handleViewAllToggle}
+            >
+              {itemsPerPage === 4 ? "View All" : "Show Less"}
+            </button>
+          </div>
 
           <section id="products" className="container mt-5">
             <div className="row">
               {products && products.length > 0 ? (
                 products.map((product) => (
-                  <div
-                    key={product._id}
-                    className="col-sm-12 col-md-6 col-lg-3 my-3"
-                  >
-                    <div className="card p-3 rounded">
-                      {product.images && product.images.length > 0 && (
-                        <img
-                          className="card-img-top mx-auto"
-                          src={product.images[0].url}
-                          alt={product.name}
-                        />
-                      )}
-                      <div className="card-body d-flex flex-column">
-                        <h5 className="card-title">{product.name}</h5>
-                        <div className="ratings mt-auto">
-                          <div className="rating-outer">
-                            <div
-                              className="rating-inner"
-                              style={{
-                                width: `${(product.ratings / 5) * 100}%`,
-                              }}
-                            ></div>
-                          </div>
-                          <span id="no_of_reviews">
-                            ({product.numOfReviews} Reviews)
-                          </span>
-                        </div>
-                        <p className="card-text">${product.price}</p>
-                        <a
-                          href={`/product/${product._id}`}
-                          className="btn btn-primary"
-                        >
-                          View Details
-                        </a>
-                      </div>
-                    </div>
-                  </div>
+                  <Product key={product._id} product={product} col={3} />
                 ))
               ) : (
                 <div className="col-12 text-center">
@@ -91,6 +98,23 @@ const Home = () => {
               )}
             </div>
           </section>
+
+          {resPerPage < count && itemsPerPage !== 100 && (
+            <div className="d-flex justify-content-center mt-5">
+              <Pagination
+                activePage={currentPage}
+                itemsCountPerPage={resPerPage}
+                totalItemsCount={productCount}
+                onChange={setCurrentPageNo}
+                nextPageText={"Next"}
+                prevPageText={"Prev"}
+                firstPageText={"First"}
+                lastPageText={"Last"}
+                itemClass="page-item"
+                linkClass="page-link"
+              />
+            </div>
+          )}
         </Fragment>
       )}
     </Fragment>

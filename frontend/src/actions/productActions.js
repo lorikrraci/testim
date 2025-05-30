@@ -28,7 +28,8 @@ export const getProducts =
     currentPage = 1,
     price = [1, 5000],
     category = "",
-    rating = 0
+    rating = 0,
+    limit = 4 // Changed default from 8 to 4
   ) =>
   async (dispatch) => {
     try {
@@ -39,40 +40,31 @@ export const getProducts =
         keyword
       )}&page=${currentPage}&price[lte]=${price[1]}&price[gte]=${
         price[0]
-      }&ratings[gte]=${rating}`;
+      }&ratings[gte]=${rating}&limit=${limit}`;
 
       if (category) {
         link = `/api/v1/products?keyword=${encodeURIComponent(
           keyword
         )}&page=${currentPage}&price[lte]=${price[1]}&price[gte]=${
           price[0]
-        }&category=${encodeURIComponent(category)}&ratings[gte]=${rating}`;
+        }&category=${encodeURIComponent(
+          category
+        )}&ratings[gte]=${rating}&limit=${limit}`;
       }
 
       console.log("API Request URL:", link);
 
-      // Add withCredentials to ensure cookies are sent
-      const response = await axios.get(link, { withCredentials: true });
-
-      // Check if response exists before destructuring
-      if (!response) {
-        throw new Error("No response received from server");
-      }
-
-      const { data } = response;
+      const { data } = await axios.get(link);
 
       dispatch({
         type: ALL_PRODUCTS_SUCCESS,
         payload: data,
       });
     } catch (error) {
-      console.error("Product fetch error:", error);
+      console.log("Product fetch error:", error);
       dispatch({
         type: ALL_PRODUCTS_FAIL,
-        payload:
-          error.response && error.response.data && error.response.data.message
-            ? error.response.data.message
-            : error.message || "Unknown Error",
+        payload: error.response.data.message,
       });
     }
   };
@@ -80,6 +72,13 @@ export const getProducts =
 export const getProductDetails = (id) => async (dispatch) => {
   try {
     dispatch({ type: PRODUCT_DETAILS_REQUEST });
+
+    console.log(`Fetching product details for ID: ${id}`);
+
+    // Validate ID before making request
+    if (!id || id === "undefined") {
+      throw new Error("Invalid product ID");
+    }
 
     // Same pattern - avoid destructuring directly
     const response = await axios.get(`/api/v1/products/${id}`);
@@ -96,12 +95,29 @@ export const getProductDetails = (id) => async (dispatch) => {
     });
   } catch (error) {
     console.error("Product details fetch error:", error);
+
+    // More detailed error handling
+    let errorMessage = "Unknown Error";
+
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      errorMessage =
+        error.response.data.message || `Server error: ${error.response.status}`;
+      console.error("Server response:", error.response.data);
+    } else if (error.request) {
+      // The request was made but no response was received
+      errorMessage = "No response from server";
+      console.error("Request made but no response received");
+    } else {
+      // Something happened in setting up the request
+      errorMessage = error.message;
+      console.error("Error setting up request:", error.message);
+    }
+
     dispatch({
       type: PRODUCT_DETAILS_FAIL,
-      payload:
-        error.response && error.response.data && error.response.data.message
-          ? error.response.data.message
-          : error.message || "Unknown Error",
+      payload: errorMessage,
     });
   }
 };

@@ -24,6 +24,9 @@ import Cart from "./components/cart/Cart";
 import Shipping from "./components/cart/Shipping";
 import ConfirmOrder from "./components/cart/ConfirmOrder";
 import Payment from "./components/cart/Payment";
+import UpdateProfile from "./components/user/UpdateProfile";
+import ForgotPassword from "./components/user/ForgotPassword";
+import NewPassword from "./components/user/NewPassword";
 
 // Actions
 import { loadUser } from "./actions/userActions";
@@ -58,7 +61,6 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/search/:keyword" element={<Home />} />
             <Route path="/product/:id" element={<ProductDetails />} />
-
             <Route path="/cart" element={<Cart />} />
             <Route
               path="/shipping"
@@ -84,9 +86,12 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
+            // Public routes
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/password/forgot" element={<ForgotPassword />} />
+            <Route path="/password/reset/:token" element={<NewPassword />} />
+            // Protected routes
             <Route
               path="/profile"
               element={
@@ -157,6 +162,14 @@ function App() {
               element={
                 <ProtectedRoute isAdmin={true}>
                   <UpdateUser />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/me/update"
+              element={
+                <ProtectedRoute>
+                  <UpdateProfile />
                 </ProtectedRoute>
               }
             />

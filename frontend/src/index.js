@@ -9,10 +9,11 @@ import { positions, transitions, Provider as AlertProvider } from "react-alert";
 import AlertTemplate from "react-alert-template-basic"; //
 
 // Configure axios - use relative URLs for API requests
-axios.defaults.baseURL = ""; // Empty string to use relative URLs
+const PORT = 5000; // Make sure this matches your backend port
+axios.defaults.baseURL = `http://localhost:${PORT}`;
 axios.defaults.withCredentials = true;
 
-console.log("Frontend configured to use proxy for API requests");
+console.log("Frontend configured to use API at:", axios.defaults.baseURL);
 
 // Add interceptor to handle errors
 axios.interceptors.response.use(

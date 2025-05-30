@@ -16,14 +16,23 @@ const connectDatabase = require("./config/database");
 // Connecting to database
 connectDatabase();
 
-const server = app.listen(process.env.PORT || 5000, () => {
-  const port = server.address().port;
+// Make sure CORS is properly configured
+const cors = require("cors");
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
+
+const PORT = process.env.PORT || 5000;
+const server = app.listen(PORT, () => {
   console.log(
-    `Server started on PORT: ${port} in ${
+    `Server started on PORT: ${PORT} in ${
       process.env.NODE_ENV || "DEVELOPMENT"
     } mode.`
   );
-  console.log(`API base URL: http://localhost:${port}`);
+  console.log(`API base URL: http://localhost:${PORT}`);
 });
 
 // Handle unhandled promise rejections

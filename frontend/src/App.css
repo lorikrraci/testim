@@ -1,6 +1,6 @@
 html,
 body {
-  font-family: 'Amazon Ember';
+  font-family: "Amazon Ember";
   width: 100%;
   height: 100%;
   margin: 0px;
@@ -131,7 +131,7 @@ footer {
 }
 
 .rating-outer::before {
-  content: '\f006 \f006 \f006 \f006 \f006';
+  content: "\f006 \f006 \f006 \f006 \f006";
 }
 
 .rating-inner {
@@ -144,7 +144,7 @@ footer {
 }
 
 .rating-inner::before {
-  content: '\f005 \f005 \f005 \f005 \f005';
+  content: "\f005 \f005 \f005 \f005 \f005";
   color: #f8ce0b;
 }
 
@@ -201,7 +201,7 @@ footer {
   padding-left: 0;
 }
 .loader:after {
-  content: ' ';
+  content: " ";
   display: block;
   width: 64px;
   height: 64px;
@@ -298,12 +298,15 @@ footer {
   justify-content: center;
   align-items: center;
   margin-top: 5rem;
-
+  margin-bottom: 5rem;
   font-weight: 700;
 }
 
 .wrapper form {
   padding: 2.5rem 3rem;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+  background-color: #fff;
 }
 
 .wrapper form .btn {
@@ -311,11 +314,58 @@ footer {
   border-color: #fa9c23;
   color: white;
   margin-top: 2.5rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s;
+}
+
+.wrapper form .btn:hover {
+  background-color: #e88e1e;
+  transform: translateY(-2px);
 }
 
 .wrapper form a {
   font-size: 0.9rem;
-  color: grey;
+  color: #fa9c23;
+  transition: all 0.3s;
+}
+
+.wrapper form a:hover {
+  color: #e88e1e;
+  text-decoration: none;
+}
+
+.wrapper form h1 {
+  font-weight: 700;
+  font-size: 2rem;
+  color: #2e2e2e;
+  margin-bottom: 1.5rem;
+}
+
+.wrapper form label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #4a4a4a;
+}
+
+.wrapper form .form-control {
+  border-radius: 4px;
+  padding: 0.8rem 1rem;
+  border: 1px solid #e1e1e1;
+  transition: all 0.3s;
+}
+
+.wrapper form .form-control:focus {
+  border-color: #fa9c23;
+  box-shadow: 0 0 0 0.2rem rgba(250, 156, 35, 0.25);
+}
+
+.wrapper form .invalid-feedback {
+  font-weight: 500;
+}
+
+.wrapper form .form-text {
+  font-weight: 500;
 }
 
 /* Avatar */
@@ -532,11 +582,11 @@ footer {
 }
 
 #sidebar ul li.active > a,
-a[aria-expanded='true'] {
+a[aria-expanded="true"] {
   color: #fff;
   background: #232f3e;
 }
-a[data-toggle='collapse'] {
+a[data-toggle="collapse"] {
   position: relative;
 }
 .dropdown-toggle::after {
@@ -613,4 +663,58 @@ ul.CTAs a {
 .review_user {
   font-size: 0.8rem;
   color: grey;
+}
+
+/* Header Auth Buttons */
+.auth-buttons {
+  margin-bottom: 10px;
+}
+
+.btn-auth {
+  background-color: #febd69;
+  color: #131921;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: all 0.3s;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.btn-auth:hover {
+  background-color: #f3a847;
+  color: #131921;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+}
+
+.cart-link {
+  display: inline-block;
+  margin-top: 10px;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.cart-link:hover {
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+/* Responsive adjustments for auth buttons */
+@media (max-width: 768px) {
+  .auth-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .btn-auth {
+    margin-bottom: 0.5rem;
+    width: 120px;
+  }
+
+  .btn-auth.mr-2 {
+    margin-right: 0 !important;
+  }
 }

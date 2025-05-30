@@ -7,7 +7,10 @@ const mongoose = require("mongoose");
 // Get all products => /api/v1/products
 exports.getProducts = catchAsyncErrors(async (req, res, next) => {
   try {
-    const resPerPage = 4;
+    console.log("Product search query:", req.query);
+
+    // Set default to 4 products per page, but still allow override via query
+    const resPerPage = req.query.limit ? parseInt(req.query.limit) : 4;
     const productCount = await Product.countDocuments();
 
     const apiFeatures = new APIFeatures(Product.find(), req.query)
@@ -17,12 +20,15 @@ exports.getProducts = catchAsyncErrors(async (req, res, next) => {
 
     const products = await apiFeatures.query;
 
-    console.log(`Found ${products.length} products`);
+    console.log(
+      `Found ${products.length} products out of ${productCount} total`
+    );
 
     res.status(200).json({
       success: true,
       productCount,
       resPerPage,
+      filteredProductsCount: products.length,
       products,
     });
   } catch (error) {

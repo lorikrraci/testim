@@ -1,5 +1,5 @@
 import React, { Fragment } from "react";
-import { Route, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useAlert } from "react-alert";
 import { logout } from "../../actions/userActions";
@@ -33,7 +33,16 @@ export const Header = () => {
         </div>
 
         <div className="col-12 col-md-3 mt-4 mt-md-0 text-center">
-          {isAuthenticated ? (
+          {!isAuthenticated ? (
+            <div className="auth-buttons d-flex justify-content-center">
+              <Link to="/login" className="btn btn-auth mr-2">
+                <i className="fa fa-sign-in-alt mr-1"></i> Login
+              </Link>
+              <Link to="/register" className="btn btn-auth">
+                <i className="fa fa-user-plus mr-1"></i> Register
+              </Link>
+            </div>
+          ) : (
             <div className="ml-4 dropdown d-inline">
               <Link
                 to="#!"
@@ -71,15 +80,9 @@ export const Header = () => {
                 </Link>
               </div>
             </div>
-          ) : (
-            !loading && (
-              <Link to="/login" className="btn ml-4" id="login_btn">
-                Login
-              </Link>
-            )
           )}
 
-          <Link to="/cart">
+          <Link to="/cart" className="cart-link ml-3">
             <span id="cart" className="ml-3">
               Cart
             </span>
